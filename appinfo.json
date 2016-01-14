@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "robisodd",
+    "longName": "Sort Colors by Brightness",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "Sort Colors by Brightness",
+    "uuid": "79b1548c-e325-425a-9a72-79cf5cc27383",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
