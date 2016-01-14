@@ -25,18 +25,19 @@ void timer_callback(void *data) {
 }
 
 void drawing_layer_update(Layer *me, GContext *ctx) {
+  uint16_t width = layer_get_frame(me).size.w;
   if(up_button_depressed) weight[select]++;  // increment number
   if(dn_button_depressed) weight[select]--;  // decrement number
   
   uint16_t brightnesstable[64];       // Convert color to brightness calculation
-  uint8_t sortedcolors[64];           // Color in order of brightness
+  uint8_t  sortedcolors[64];          // Color in order of brightness
   uint16_t sortedbrightnesstable[64]; // Brightness calculation result in order
 
   for(uint8_t i=0; i<64; i++) {
     sortedcolors[i] = i;
     GColor8 color = (GColor8) { .argb = i+0b11000000 };
     uint16_t brightness = color.r*weight[0] + color.g*weight[1] + color.b*weight[2];
-    brightnesstable[i] = brightness;
+          brightnesstable[i] = brightness;
     sortedbrightnesstable[i] = brightness;
 //     APP_LOG(APP_LOG_LEVEL_INFO, "color %d = brightness %d", i, brightness);
   }
@@ -56,28 +57,30 @@ void drawing_layer_update(Layer *me, GContext *ctx) {
   }  // END Insertion Sort
   
   // Draw black on left, white on right
-  for(uint16_t i=0; i<8; i++) {
+  for(uint16_t i=0; i<((width-128)/2); i++) {
     graphics_context_set_stroke_color(ctx, GColorBlack);
-    graphics_draw_line(ctx, GPoint(i, 0), GPoint(i, 167));
+    graphics_draw_line(ctx, GPoint(i, 0), GPoint(i, 140));
     graphics_context_set_stroke_color(ctx, GColorWhite);
-    graphics_draw_line(ctx, GPoint(i+136, 0), GPoint(i+136, 167));
+    graphics_draw_line(ctx, GPoint((width+128)/2 + i, 0), GPoint((width+128)/2 + i, 140));
   }
   
   // Draw vertical lines
   for(uint16_t i=0; i<64; i++) {
+    int16_t x = ((width/2) - 64) + (i*2);
     graphics_context_set_stroke_color(ctx, (GColor){.argb=sortedcolors[i]+0b11000000});
-    graphics_draw_line(ctx, GPoint(i*2+8, 0), GPoint(i*2+8, 100));
-    graphics_draw_line(ctx, GPoint(i*2+9, 0), GPoint(i*2+9, 100));
+    graphics_draw_line(ctx, GPoint(x,   0), GPoint(x,   140));
+    graphics_draw_line(ctx, GPoint(x+1, 0), GPoint(x+1, 140));
 //     APP_LOG(APP_LOG_LEVEL_INFO, "sortedcolors[%d] = %d (%d)", i, sortedcolors[i], brightnesstable[sortedcolors[i]]);
-    brightnesstable[0]+=0;
+    brightnesstable[0]+=0;  // To stop error of not using this variable
   }
   
   // Draw Text
   char text[30];
-  graphics_context_set_text_color(ctx, GColorRed);  // White Text
+  graphics_context_set_text_color(ctx, GColorBlack);  // White Text
   snprintf(text, sizeof(text), "%cR:%d %cG:%d %cB:%d", select==0?'>':' ', weight[0], select==1?'>':' ',weight[1], select==2?'>':' ',weight[2]);  // What text to draw
-  graphics_draw_text(ctx, text, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD), GRect(0,120,144,20), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);  //Write Text
+  graphics_draw_text(ctx, text, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD), GRect(0,145,width,20), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);  //Write Text
 
+  // Schedule loop if either button is pressed (and loop isn't already scheduled)
   if(!looper && (up_button_depressed || dn_button_depressed))
     looper = app_timer_register(UPDATE_MS, timer_callback, NULL); // Schedule a callback
 }
